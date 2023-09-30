@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define ORDEM_ARVORE 5
 #define NULO -1
@@ -37,7 +38,7 @@ typedef enum {SUCESSO, FALHA} status_operacao;
 
 // Essas funções foram baseadas na biblioteca utilizada em sala, vistas nos slides e algumas foram recicladas do primeiro trabalho
 int gerar_novo_rrn(FILE* arvore_b);
-void inicializar_pagina(pagina* nova_pagina);
+void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio);
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves);
 void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida, int* filho_direito_promovido, pagina* nova_pagina_gerada);
 void modulo_criar_indice();
@@ -53,6 +54,8 @@ status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b);
 status_operacao imprime_arvore(FILE* arvore_b);
 status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b);
 status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b);
+
+void libera_memoria_pagina(pagina* pagina_finalizada);
 
 int converte_rrn_para_offset(int rrn)
 {
@@ -121,28 +124,31 @@ int gerar_novo_rrn(FILE* arvore_b)
         Retorno:
             O valor de RRN gerado
     */
+    
+    int tamanho_pagina = sizeof(pagina);
+    int tamanho_cabecalho = sizeof(int);
 
-    // faça TAMANHOPAG receber o tamanho em bytes de uma página
-    // faça TAMANHOCAB receber o tamanho em bytes do cabeçalho
-    // faça BYTEOFFSET receber o byte-offset do fim do arquivo
-    // retorne (BYTEOFFSET – TAMANHOCAB)/TAMANHOPAG
-    return 0;
+    fseek(arvore_b, 0, SEEK_END);
+    int offset = ftell(arvore_b);
+
+    return (offset - tamanho_cabecalho) / tamanho_pagina;
 }
 
-void inicializar_pagina(pagina* nova_pagina)
+void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio)
 {
     /*
         Inicializa os valores de uma nova página criada
         Entrada:
             pagina* nova_pagina: Um ponteiro para a variável página a ser inicializada
     */
+    
+    nova_pagina->num_chaves = 0;
 
-    // PAG.NUM_CHAVES = 0
-    // para i de 0 até ORDEM-1 faça
-    // PAG.CHAVES[i] = NULO
-    // PAG.FILHOS[i] = NULO
-    // PAG.FILHOS[i] = NULO
-    // fim FUNÇÃO
+    for (int i = 0; i < ORDEM_ARVORE - 1; i++)
+    {
+        nova_pagina->chaves[i] = *registro_vazio;
+        nova_pagina->filhos[i] = -1;
+    }
 }
 
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves)
@@ -157,16 +163,21 @@ void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave
             int* num_chaves: Campo número de chaves da página
     */
 
-    // faça i receber NUM_CHAVES
-    // enquanto i > 0 e CHAVE < CHAVES[i-1] faça
-    // CHAVES[i] = CHAVES[i-1];
-    // FILHOS[i+1] = FILHOS[i];
-    // decremente i
-    // fim enquanto
-    // incremente NUM_CHAVES
-    // faça CHAVES[i] receber CHAVE
-    // faça FILHOS[i+1] receber FILHO_D
+    int i = *num_chaves;
+
+    while (i > 0 && strcmp(chave_inserida.identificador, chaves[i].identificador) < 0)
+    {
+        chaves[i] = chaves[i-1];
+        filhos[i+1] = filhos[i];
+        i--;
+    }
+
+    *num_chaves = *num_chaves + 1;
+    chaves[i] = chave_inserida;
+    filhos[i+1] = rrn_filho_dir_chave;
 }
+
+void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino);
 
 void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida,
                    int* filho_direito_promovido, pagina* nova_pagina_gerada)
@@ -181,7 +192,7 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
             int* filho_direito_promovido: Variável para receber o filho direito da chave promovida (RRN da nova página)
             pagina* nova_pagina: Variável para receber a nova página gerada
     */
-
+    
     // copie PAG para PAGAUX
     // insira CHAVE e FILHO_D na PAGAUX
     // faça MEIO receber ORDEM/2
@@ -266,8 +277,12 @@ status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_p
         return SEM_PROMOCAO;       
     }
 
+    registro registro_vazio;
+    registro_vazio.byte_offset = -1;
+    strcpy(registro_vazio.identificador, "\0");
+
     pagina nova_pagina;
-    inicializar_pagina(&nova_pagina);
+    inicializar_pagina(&nova_pagina, &registro_vazio);
 
     divide_pagina(chave_pro, rrn_pro, &pagina_atual, chave_promovida, filho_direito_promovido, &nova_pagina);
     escreve_pagina(rrn_atual, &pagina_atual, arvore_b);
