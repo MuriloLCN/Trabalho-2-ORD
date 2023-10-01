@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define ORDEM_ARVORE 5
 #define NULO -1
@@ -37,9 +38,10 @@ typedef enum {SUCESSO, FALHA} status_operacao;
 
 // Essas funções foram baseadas na biblioteca utilizada em sala, vistas nos slides e algumas foram recicladas do primeiro trabalho
 int gerar_novo_rrn(FILE* arvore_b);
-void inicializar_pagina(pagina* nova_pagina);
+void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio);
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves);
-void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida, int* filho_direito_promovido, pagina* nova_pagina_gerada);
+void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida, 
+                   int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b);
 void modulo_criar_indice();
 void modulo_imprimir_arvore_b();
 void modulo_realizar_operacoes();
@@ -53,6 +55,8 @@ status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b);
 status_operacao imprime_arvore(FILE* arvore_b);
 status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b);
 status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b);
+
+void libera_memoria_pagina(pagina* pagina_finalizada);
 
 int converte_rrn_para_offset(int rrn)
 {
@@ -121,28 +125,31 @@ int gerar_novo_rrn(FILE* arvore_b)
         Retorno:
             O valor de RRN gerado
     */
+    
+    int tamanho_pagina = sizeof(pagina);
+    int tamanho_cabecalho = sizeof(int);
 
-    // faça TAMANHOPAG receber o tamanho em bytes de uma página
-    // faça TAMANHOCAB receber o tamanho em bytes do cabeçalho
-    // faça BYTEOFFSET receber o byte-offset do fim do arquivo
-    // retorne (BYTEOFFSET – TAMANHOCAB)/TAMANHOPAG
-    return 0;
+    fseek(arvore_b, 0, SEEK_END);
+    int offset = ftell(arvore_b);
+
+    return (offset - tamanho_cabecalho) / tamanho_pagina;
 }
 
-void inicializar_pagina(pagina* nova_pagina)
+void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio)
 {
     /*
         Inicializa os valores de uma nova página criada
         Entrada:
             pagina* nova_pagina: Um ponteiro para a variável página a ser inicializada
     */
+    
+    nova_pagina->num_chaves = 0;
 
-    // PAG.NUM_CHAVES = 0
-    // para i de 0 até ORDEM-1 faça
-    // PAG.CHAVES[i] = NULO
-    // PAG.FILHOS[i] = NULO
-    // PAG.FILHOS[i] = NULO
-    // fim FUNÇÃO
+    for (int i = 0; i < ORDEM_ARVORE - 1; i++)
+    {
+        nova_pagina->chaves[i] = *registro_vazio;
+        nova_pagina->filhos[i] = -1;
+    }
 }
 
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves)
@@ -157,19 +164,32 @@ void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave
             int* num_chaves: Campo número de chaves da página
     */
 
-    // faça i receber NUM_CHAVES
-    // enquanto i > 0 e CHAVE < CHAVES[i-1] faça
-    // CHAVES[i] = CHAVES[i-1];
-    // FILHOS[i+1] = FILHOS[i];
-    // decremente i
-    // fim enquanto
-    // incremente NUM_CHAVES
-    // faça CHAVES[i] receber CHAVE
-    // faça FILHOS[i+1] receber FILHO_D
+    int i = *num_chaves;
+
+    while (i > 0 && strcmp(chave_inserida.identificador, chaves[i].identificador) < 0)
+    {
+        chaves[i] = chaves[i-1];
+        filhos[i+1] = filhos[i];
+        i--;
+    }
+
+    *num_chaves = *num_chaves + 1;
+    chaves[i] = chave_inserida;
+    filhos[i+1] = rrn_filho_dir_chave;
+}
+
+void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
+{
+    /*
+        Copia os dados de uma página de origem para uma página de destino
+        Entradas:
+            pagina* pagina_origem: A página de origem dos dados
+            pagina* pagina_destinho: A página de destino dos dados
+    */
 }
 
 void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida,
-                   int* filho_direito_promovido, pagina* nova_pagina_gerada)
+                   int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b)
 {
     /*
         Insere uma chave em uma página que precisa ser dividida, cria uma nova página, realiza a distribuição e promoção de chaves
@@ -181,36 +201,44 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
             int* filho_direito_promovido: Variável para receber o filho direito da chave promovida (RRN da nova página)
             pagina* nova_pagina: Variável para receber a nova página gerada
     */
+    pagina pagina_auxiliar;
+    copiar_pagina(pagina_original, &pagina_auxiliar);
+    inserir_elemento_em_pagina(chave_inserida, rrn_inserido, pagina_original->chaves, pagina_original->filhos, pagina_original->num_chaves);
 
-    // copie PAG para PAGAUX
-    // insira CHAVE e FILHO_D na PAGAUX
-    // faça MEIO receber ORDEM/2
-    // faça CHAVE_PRO receber PAGAUX.CHAVES[MEIO]
-    // faça FILHO_D_PRO receber o RRN que o NOVAPAG terá no arquivo
-    // árvore-b
-    // /* Copie as chaves e ponteiros que vêm antes de CHAVE_PRO
-    // para PAG */
-    // inicialize PAG
-    // faça i receber 0
-    // enquanto i < MEIO faça
-    // PAG.CHAVES[i] = PAGAUX.CHAVES[i]
-    // PAG.FILHOS[i] = PAGAUX.FILHOS[i]
-    // incremente PAG.NUM_CHAVES
-    // incremente i
-    // fim enquanto
-    // PAG.FILHOS[i] = PAGAUX.FILHOS[i]
-    // /* Copie as chaves e ponteiros que vêm depois de CHAVE_PRO para
-    // NOVAPAG */
-    // inicialize NOVAPAG
-    // faça i receber MEIO + 1
-    // enquanto i < ORDEM faça
-    // NOVAPAG.CHAVES[NOVAPAG.NUM_CHAVES] = PAGAUX.CHAVES[i]
-    // NOVAPAG.FILHOS[NOVAPAG.NUM_CHAVES] = PAGAUX.FILHOS[i]
-    // incremente NOVAPAG.NUM_CHAVES
-    // incremente i
-    // fim enquanto
-    // NOVAPAG.FILHOS[NOVAPAG.NUM_CHAVES] = PAGAUX.FILHOS[i]
-    // fim FUNÇÃO
+    int meio = ORDEM_ARVORE / 2;
+
+    *chave_promovida = pagina_auxiliar.chaves[meio];
+    *filho_direito_promovido = gerar_novo_rrn(arvore_b);
+
+    registro registro_vazio;
+    registro_vazio.byte_offset = -1;
+    strcpy(registro_vazio.identificador, "\0");
+
+    inicializar_pagina(pagina_original, &registro_vazio);
+    
+    int i = 0;
+    while (i < meio)
+    {
+        pagina_original->chaves[i] = pagina_auxiliar.chaves[i];
+        pagina_original->filhos[i] = pagina_auxiliar.filhos[i];
+        pagina_original->num_chaves = pagina_original->num_chaves + 1;
+        i += 1;
+    }
+
+    pagina_original->filhos[i] = pagina_auxiliar.filhos[i];
+
+    inicializar_pagina(nova_pagina_gerada, &registro_vazio);
+    
+    int i = meio + 1;
+    while (i < ORDEM_ARVORE)
+    {
+        nova_pagina_gerada->chaves[nova_pagina_gerada->num_chaves] = pagina_auxiliar.chaves[i];
+        nova_pagina_gerada->filhos[nova_pagina_gerada->num_chaves] = pagina_auxiliar.filhos[i];
+        nova_pagina_gerada->num_chaves = nova_pagina_gerada->num_chaves + 1;
+        i += 1;
+    }
+
+    nova_pagina_gerada->filhos[nova_pagina_gerada->num_chaves] = pagina_auxiliar.filhos[i];
 }
 
 status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b)
@@ -266,10 +294,14 @@ status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_p
         return SEM_PROMOCAO;       
     }
 
-    pagina nova_pagina;
-    inicializar_pagina(&nova_pagina);
+    registro registro_vazio;
+    registro_vazio.byte_offset = -1;
+    strcpy(registro_vazio.identificador, "\0");
 
-    divide_pagina(chave_pro, rrn_pro, &pagina_atual, chave_promovida, filho_direito_promovido, &nova_pagina);
+    pagina nova_pagina;
+    inicializar_pagina(&nova_pagina, &registro_vazio);
+
+    divide_pagina(chave_pro, rrn_pro, &pagina_atual, chave_promovida, filho_direito_promovido, &nova_pagina, arvore_b);
     escreve_pagina(rrn_atual, &pagina_atual, arvore_b);
     escreve_pagina(*filho_direito_promovido, &nova_pagina, arvore_b);
 
@@ -288,16 +320,19 @@ status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* p
             Status FALHA caso a chave não pertença à página
             Status SUCESSO caso a chave esteja na página
     */
+    
+    int i = 0;
+    while (i < pagina_alvo.num_chaves && strcmp(chave.identificador, pagina_alvo.chaves[i].identificador) > 0)
+    {
+        i += 1;
+        *posicao_encontrada = i;
+        
+    }
 
-    // faça i receber 0
-    // enquanto i < PAG.NUM_CHAVES e CHAVE > PAG.CHAVE[i] faça
-    // incremente i
-    // faça POS receber i
-    // se POS < PAG.NUM_CHAVES e CHAVE é igual a PAG.CHAVE[POS] então
-    // retorne ENCONTRADO
-    // senão
-    // retorne NAO_ENCONTRADO
-    // fim FUNÇÃO
+    if (*posicao_encontrada < pagina_alvo.num_chaves && strcmp(chave.identificador, pagina_alvo.chaves[i].identificador) == 0)
+    {
+        return SUCESSO;
+    }
     return FALHA;
 }
 
@@ -316,22 +351,24 @@ status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* p
             Status FALHA caso a chave não seja encontrada no arquivo
     */
 
-    // se RRN == NULO então /* condição de parada */
-    // retorne NAO_ENCONTRADO
-    // senão
-    // leia a página armazenada no RRN para PAG
-    // ACHOU = busca_na_pagina(CHAVE, PAG, POS)
-    // /* POS recebe a posição em que CHAVE ocorre
-    // ou deveria ocorrer se estivesse em PAG */
-    // se ACHOU então
-    // RRN_ENCONTRADO := RRN /* RRN da página que contém a chave */
-    // POS_ENCONTRADO := POS /* posição da chave na página*/
-    // retorne ENCONTRADO
-    // senão /* siga o ponteiro para a próxima página da busca */
-    // retorne(busca(PAG.FILHOS[POS], CHAVE, RRN_ENCONTRADO, POS_ENCONTRADA))
-    // fim se
-    // fim se
-    // fim FUNÇÃO
+    if (rrn == -1)
+    {
+        return FALHA;
+    }
+
+    pagina pagina_atual;
+
+    le_pagina(rrn, &pagina_atual, arvore_b);
+    status_operacao achou = busca_chave_em_pagina(chave, pagina_atual, posicao_encontrada);
+    
+    if (achou == SUCESSO)
+    {
+        *rrn_encontrado = rrn;
+        // pOS_ENCONTRADO := POS  ??
+        return SUCESSO;
+    }
+
+    return busca_chave(pagina_atual.filhos[*posicao_encontrada], chave, rrn_encontrado, posicao_encontrada, arvore_b);
 }
 
 status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
