@@ -24,7 +24,7 @@ typedef struct registro {
 typedef struct pagina {
     int num_chaves;
     registro chaves[ORDEM_ARVORE - 1];
-    offsets[ORDEM_ARVORE - 1];
+    //offsets[ORDEM_ARVORE - 1];
     int filhos[ORDEM_ARVORE];
 } pagina;
 
@@ -56,8 +56,21 @@ status_operacao imprime_arvore(FILE* arvore_b);
 status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b);
 status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b);
 
-void libera_memoria_pagina(pagina* pagina_finalizada);
+// void libera_memoria_pagina(pagina* pagina_finalizada)
+// {
+//     /*
+//         Libera a memória alocada para os registros de uma página quando essa não é mais necessária
+//         Entrada:
+//             pagina* pagina_finalizada: O ponteiro para uma página que não será mais utilizada
+//     */
+    
+//     for (int i = 0; i < pagina_finalizada->num_chaves; i++)
+//     {
+//         free(pagina_finalizada->chaves[i].identificador);
+//     }
+// }
 
+/**/
 int converte_rrn_para_offset(int rrn)
 {
     /*
@@ -68,6 +81,7 @@ int converte_rrn_para_offset(int rrn)
     return (rrn * sizeof(pagina)) + TAMANHO_CABECALHO;
 }
 
+/**/
 status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b)
 {   
     /*
@@ -92,6 +106,7 @@ status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b)
     return FALHA;
 } 
 
+/**/
 status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b)
 {
     /*
@@ -116,6 +131,7 @@ status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b
     return FALHA;
 }
 
+/**/
 int gerar_novo_rrn(FILE* arvore_b)
 {
     /*
@@ -135,6 +151,7 @@ int gerar_novo_rrn(FILE* arvore_b)
     return (offset - tamanho_cabecalho) / tamanho_pagina;
 }
 
+/**/
 void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio)
 {
     /*
@@ -152,6 +169,7 @@ void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio)
     }
 }
 
+/**/
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves)
 {
     /*
@@ -178,6 +196,7 @@ void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave
     filhos[i+1] = rrn_filho_dir_chave;
 }
 
+/**/
 void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
 {
     /*
@@ -186,8 +205,21 @@ void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
             pagina* pagina_origem: A página de origem dos dados
             pagina* pagina_destinho: A página de destino dos dados
     */
+    pagina_destino->num_chaves = pagina_origem->num_chaves;
+    
+    for (int i = 0; i < pagina_destino->num_chaves; i++)
+    {
+        pagina_destino->chaves[i].byte_offset = pagina_origem->chaves[i].byte_offset;
+        strcpy(pagina_destino->chaves[i].identificador, pagina_origem->chaves[i].identificador);
+    }
+
+    for (int j = 0; j <= pagina_destino->num_chaves; j++)
+    {
+        pagina_destino->filhos[j] = pagina_origem->filhos[j];
+    }
 }
 
+/**/
 void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida,
                    int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b)
 {
@@ -241,6 +273,7 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
     nova_pagina_gerada->filhos[nova_pagina_gerada->num_chaves] = pagina_auxiliar.filhos[i];
 }
 
+/**/
 status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b)
 {
     /*
@@ -308,6 +341,7 @@ status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_p
     return PROMOCAO;
 }
 
+/**/
 status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* posicao_encontrada)
 {
     /*
@@ -336,6 +370,7 @@ status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* p
     return FALHA;
 }
 
+/**/
 status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* posicao_encontrada, FILE* arvore_b)
 {
     /*
@@ -357,20 +392,22 @@ status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* p
     }
 
     pagina pagina_atual;
+    int posicao;
 
     le_pagina(rrn, &pagina_atual, arvore_b);
-    status_operacao achou = busca_chave_em_pagina(chave, pagina_atual, posicao_encontrada);
+    status_operacao achou = busca_chave_em_pagina(chave, pagina_atual, &posicao);
     
     if (achou == SUCESSO)
     {
         *rrn_encontrado = rrn;
-        // pOS_ENCONTRADO := POS  ??
+        *posicao_encontrada = posicao;
         return SUCESSO;
     }
 
     return busca_chave(pagina_atual.filhos[*posicao_encontrada], chave, rrn_encontrado, posicao_encontrada, arvore_b);
 }
 
+// TODO
 status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
 {
     /*
@@ -385,6 +422,7 @@ status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
     return FALHA;
 }
 
+// TODO
 status_operacao imprime_arvore(FILE* arvore_b)
 {
     /*
@@ -407,6 +445,7 @@ void modulo_criar_indice(FILE* arvore_b)
     */
 }
 
+// TODO
 void modulo_imprimir_arvore_b(FILE* arvore_b)
 {
     /*
@@ -426,6 +465,7 @@ void modulo_realizar_operacoes(FILE* arvore_b)
     */
 }
 
+// TODO
 void modulo_insercao(FILE* arvore_b, registro chave)
 {
     /*
@@ -436,6 +476,7 @@ void modulo_insercao(FILE* arvore_b, registro chave)
     */
 }
 
+// TODO
 void modulo_busca(FILE* arvore_b, registro chave)
 {
     /*
@@ -446,6 +487,7 @@ void modulo_busca(FILE* arvore_b, registro chave)
     */
 }
 
+// TODO
 void ler_identificador_registro(char *registro, char *nome)
 {
     /*
