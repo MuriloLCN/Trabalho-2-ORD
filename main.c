@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define NOME_ARQUIVO_DADOS "dados.dat"
 #define ORDEM_ARVORE 5
 #define NULO -1
 #define TAMANHO_MAXIMO_BUFFER 500
@@ -42,11 +43,6 @@ void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio);
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves);
 void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida, 
                    int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b);
-void modulo_criar_indice();
-void modulo_imprimir_arvore_b();
-void modulo_realizar_operacoes();
-void modulo_insercao();
-void modulo_busca();
 void ler_identificador_registro(char *registro, char *nome);
 status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b);
 status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* posicao_encontrada);
@@ -414,7 +410,7 @@ status_operacao imprime_arvore(FILE* arvore_b)
 }
 
 // 
-void modulo_criar_indice(FILE* arvore_b)
+void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
 {
     /*
         Procedimento que monta o índice no arquivo arvb vazio
@@ -434,7 +430,7 @@ void modulo_imprimir_arvore_b(FILE* arvore_b)
 }
 
 // 
-void modulo_realizar_operacoes(FILE* arvore_b)
+void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_operacoes)
 {
     /*
         Procedimento que abre o arquivo de operações e realiza as operações descritas nela, chamando modulo_insercao() ou modulo_busca()
@@ -544,54 +540,50 @@ void ler_identificador_registro(char *registro, char *nome)
     nome[i] = '\0';
 }
 
-// 
-int main()
+int main(int argc, char *argv[]) 
 {
     /*
         Ponto principal de entrada do programa
     */
-    return 0;   
-}
 
+    
+    FILE *arquivo_de_dados = fopen(NOME_ARQUIVO_DADOS, "rb+");
 
-/*
-void gerenciador(int* raiz)
-{
-    FILE* chaves = fopen("chaves.txt", "r");
-    if (chaves == NULL)
+    if (arquivo_de_dados == NULL)
     {
-        printf("\nArquivo de chaves não encontrado");
-        return;
+        fprintf(stderr, "\nNao foi encontrado o arquivo de dados para leitura");
+        exit(EXIT_FAILURE);
     }
-    int chave = leia_chave(chaves);
-    int filho_d_pro = -1;
-    int chave_pro = -1;
-
-    while (chave != -1)
+    
+    if (argc == 2 && strcmp(argv[1], "-c") == 0)
     {
-        printf("\nInserindo chave: %d", chave);
-        
-        if (insere_2(*raiz, chave, &filho_d_pro, &chave_pro) == PROMOCAO)
-        {
-            printf("\nPrecisou de uma promoção na raiz");
-            PAGINA nova_pagina;
-            inicializa_pagina(&nova_pagina);
-            nova_pagina.chaves[0] = chave_pro;
-            nova_pagina.filhos[0] = *raiz;
-            nova_pagina.filhos[1] = filho_d_pro;
-            nova_pagina.num_chaves += 1;
-            int rrn = novo_rrn();
-            escreve_pagina(rrn, &nova_pagina);
-            *raiz = rrn;
-        }
-
-        chave = leia_chave(chaves);
+        printf("Modo de criacao do indice ativado... "); // Formatar de acordo com os logs do trabalho
+        // Criar novo arquivo arvb
+        modulo_criar_indice(); // Ainda sem parâmetros
     }
-
-    fclose(chaves);
-    fseek(arvb, 0, SEEK_SET);
-    fwrite(raiz, sizeof(int), 1, arvb);
+    else if (argc == 3 && strcmp(argv[1], "-e") == 0)
+    {
+    		printf("Modo de realizar operacoes ativado... "); // Formatar de acordo com os logs do trabalho
+        FILE *btree = fopen(NOME_ARQUIVO_DADOS, "rb+"); // Abrir arquivo arvore b
+        // Verificar se existe mesmo
+        modulo_realizar_operacoes(); // Ainda sem parâmetros
+    }
+    else if (argc == 2 && strcmp(argv[1], "-p") == 0)
+    {
+    		printf("Modo de impressao da arvore ativado... "); // Formatar de acordo com os logs do trabalho
+        // Abrir aquivo arvore b
+        // Verificar se existe mesmo
+        modulo_imprimir_arvore_b(); // Ainda sem parâmetros
+    }
+    else 
+    {
+        fprintf(stderr, "Argumentos incorretos!\n");
+        fprintf(stderr, "Modo de uso:\n");
+        // fprintf(stderr, "$ %s -e nome_arquivo\n", argv[0]); // Colocar comandos formatadinhos aqui <-----
+        // fprintf(stderr, "$ %s -p\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    
+    fclose(arquivo_de_dados);
+    return 0;
 }
-
-int main()
-*/
