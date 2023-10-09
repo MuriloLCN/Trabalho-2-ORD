@@ -448,13 +448,8 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, registro chave)
             FILE* arvore_b: O descritor do arquivo para se realizar a busca
             registro chave: O registro a ser inserido na árvore
     */
-    status_operacao dados;
-    dados = insere_registro_arquivo_de_dados();
-
-    if (dados == FALHA)
-    {
-        return;
-    }
+    // Ou trazer as operações externas pra cá
+    // dados = insere_registro_arquivo_de_dados();  <---- tem que ser feito fora desse módulo
 
     status_insercao op;
     int raiz = rrn_raiz(arvore_b);
@@ -477,6 +472,12 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, registro chave)
     fseek(arvore_b, 0, SEEK_SET);
     fwrite(raiz, sizeof(int), 1, arvore_b);
 
+    // Impressão tbm
+    /*
+        Insercao do registro de chave "181"
+        181|Pac-Man|1980|Maze|Namco|Arcade| (35 bytes - offset 3132)
+    */
+
     // Printar os dados da insercao
 }
 
@@ -496,14 +497,16 @@ int rrn_raiz(FILE* arvore_b)
 }
 
 // Parcial
-void modulo_busca(FILE* arvore_b, registro chave)
+void modulo_busca(FILE* arvore_b, registro chave, FILE* arquivo_de_dados)
 {
     /*
         Realiza a operação de busca no arquivo arvb e imprime os resultados na saída padrão
         Entradas:
             FILE* arvore_b: O descritor do arquivo para se realizar a busca
-            registro chave: O registro a ser procurado na árvore
+            registro chave: O registro a ser procurado na árvore [OBS: chave.byte_offset não é utilizado aqui]
     */
+
+    printf("\nBusca pelo registro de chave \"%s\"", chave.identificador);
     
     int rrn_encontrado;
     int posicao_encontrada;
@@ -512,6 +515,26 @@ void modulo_busca(FILE* arvore_b, registro chave)
     raiz = rrn_raiz(arvore_b);
     status_operacao op;
     op = busca_chave(raiz, chave, &rrn_encontrado, &posicao_encontrada, arvore_b);
+
+    int offset_pagina = TAMANHO_CABECALHO + sizeof(registro) * rrn_encontrado;
+    pagina pagina_encontrada;
+    fread(&pagina_encontrada, sizeof(pagina), 1, arvore_b);
+
+    int offset_no_arquivo = pagina_encontrada.chaves[posicao_encontrada].byte_offset;
+
+    fseek(arquivo_de_dados, offset_no_arquivo, SEEK_SET);
+
+    char dados_do_jogo[TAMANHO_MAXIMO_BUFFER];
+    int tamanho_do_registro;
+    fread(&tamanho_do_registro, sizeof(short), 1, arquivo_de_dados); // SHORT ou INT?
+    fread(dados_do_jogo, sizeof(char), tamanho_do_registro, arquivo_de_dados);
+
+    printf("\n%s (%d bytes - offset %d)", dados_do_jogo, tamanho_do_registro, offset_no_arquivo);
+
+    /*
+    Busca pelo registro de chave "74"
+    74|Super Mario Kart|1992|Kart racing|Nintendo|Super NES| (56 bytes - offset 1036)
+    */
 
     // Printar informações aqui
 }
