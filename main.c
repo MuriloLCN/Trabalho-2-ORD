@@ -410,7 +410,7 @@ status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* p
     return busca_chave(pagina_atual.filhos[*posicao_encontrada], chave, rrn_encontrado, posicao_encontrada, arvore_b);
 }
 
-// TODO
+
 status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
 {
     /*
@@ -422,20 +422,36 @@ status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
             Status SUCESSO caso a impressão seja feita com sucesso
             Status FALHA caso a página não possa ser lida (RRN inválido)
     */
-    return FALHA;
-}
+    fseek(arvore_b, sizeof(pagina) * rrn_alvo + TAMANHO_CABECALHO, SEEK_SET);
+    pagina pagina_lida;
+    int res = fread(&pagina_lida, sizeof(pagina), 1, arvore_b);
 
-// TODO
-status_operacao imprime_arvore(FILE* arvore_b)
-{
-    /*
-        Imprime o conteúdo do arquivo arvb
-        Entrada:
-            FILE* arvore_b: O descritor do arquivo contendo a árvore B
-        Retorno:
-            Status FALHA se a árvore não possa ser impressa (arquivo não aberto)
-            Status SUCESSO se a árvore foi impressa com sucesso
-    */
+    if (res <= 0)
+    {
+        return FALHA;
+    }
+
+    printf("\nPagina %d", rrn_alvo);
+    printf("\nChaves: ");
+
+    for (int i = 0; i < pagina_lida.num_chaves; i++)
+    {
+        printf("%s |", pagina_lida.chaves[i].identificador);
+    }
+
+    printf("\nOffsets: ");
+    for (int i = 0; i < pagina_lida.num_chaves; i++)
+    {
+        printf("%s |", pagina_lida.chaves[i].byte_offset);
+    }
+
+    printf("\nFilhos: ");
+    for (int i = 0; i <= pagina_lida.num_chaves; i++)
+    {
+        printf("%s |", pagina_lida.filhos[i]);
+    }
+
+    return SUCESSO;
 }
 
 // 
@@ -448,7 +464,7 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
     */
 }
 
-// TODO
+
 void modulo_imprimir_arvore_b(FILE* arvore_b)
 {
     /*
@@ -456,6 +472,28 @@ void modulo_imprimir_arvore_b(FILE* arvore_b)
         Entrada:
             FILE* arvore_b: O arquivo contendo a estrutura da árvore a ser impressa
     */
+
+    fseek(arvore_b, 0, SEEK_SET);
+
+    int rrn_raiz;
+    fread(&rrn_raiz, sizeof(int), 1, arvore_b);
+
+    int rrn_max = gerar_novo_rrn(arvore_b);
+
+    for (int i = 0; i < rrn_max; i++)
+    {
+        if (i == rrn_raiz)
+        {
+            printf("\n - - - - - - RAIZ - - - - - - ");
+            imprime_pagina(i, arvore_b);
+            printf("\n - - - - - - - - - - - - - - -\n");        
+        }
+        else
+        {
+            imprime_pagina(i, arvore_b);
+            printf("\n");
+        }
+    }
 }
 
 // 
