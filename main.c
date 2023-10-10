@@ -38,19 +38,20 @@ typedef enum {SUCESSO, FALHA} status_operacao;
 // Cabeçalho de todas as funções para não existir problemas de ordem
 
 // Essas funções foram baseadas na biblioteca utilizada em sala, vistas nos slides e algumas foram recicladas do primeiro trabalho
-int gerar_novo_rrn(FILE* arvore_b);
-void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio);
-void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves);
-void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida, 
-                   int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b);
-void ler_identificador_registro(char *registro, char *nome);
-status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b);
-status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* posicao_encontrada);
-status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* posicao_encontrada, FILE* arvore_b);
-status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b);
-status_operacao imprime_arvore(FILE* arvore_b);
-status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b);
-status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b);
+// int gerar_novo_rrn(FILE* arvore_b);
+// void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio);
+// void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves);
+// void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida, 
+//                    int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b);
+// void ler_identificador_registro(char *registro, char *nome);
+// status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b);
+// status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* posicao_encontrada);
+// status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* posicao_encontrada, FILE* arvore_b);
+// status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b);
+// status_operacao imprime_arvore(FILE* arvore_b);
+// status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b);
+// status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b);
+
 
 int converte_rrn_para_offset(int rrn)
 {
@@ -61,6 +62,7 @@ int converte_rrn_para_offset(int rrn)
     */
     return (rrn * sizeof(pagina)) + TAMANHO_CABECALHO;
 }
+
 
 status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b)
 {   
@@ -86,6 +88,7 @@ status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b)
     return FALHA;
 } 
 
+
 status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b)
 {
     /*
@@ -110,6 +113,7 @@ status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b
     return FALHA;
 }
 
+
 int gerar_novo_rrn(FILE* arvore_b)
 {
     /*
@@ -129,6 +133,7 @@ int gerar_novo_rrn(FILE* arvore_b)
     return (offset - tamanho_cabecalho) / tamanho_pagina;
 }
 
+
 void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio)
 {
     /*
@@ -145,6 +150,7 @@ void inicializar_pagina(pagina* nova_pagina, registro* registro_vazio)
         nova_pagina->filhos[i] = -1;
     }
 }
+
 
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves)
 {
@@ -172,6 +178,7 @@ void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave
     filhos[i+1] = rrn_filho_dir_chave;
 }
 
+
 void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
 {
     /*
@@ -193,6 +200,7 @@ void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
         pagina_destino->filhos[j] = pagina_origem->filhos[j];
     }
 }
+
 
 void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida,
                    int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b)
@@ -246,6 +254,7 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
 
     nova_pagina_gerada->filhos[nova_pagina_gerada->num_chaves] = pagina_auxiliar.filhos[i];
 }
+
 
 status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b)
 {
@@ -314,8 +323,27 @@ status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_p
     return PROMOCAO;
 }
 
-// TODO
-status_operacao insere_registro_arquivo_de_dados();
+
+void insere_registro_arquivo_de_dados(FILE* arquivo_de_dados, char* string_registro, int* posicao_inserida)
+{
+    /*
+        Insere um registro no final do arquivo de dados
+        Entradas:
+            FILE* arquivo_de_dados: O descritor do arquivo contendo os dados dos jogos
+            char* string_registro: A string contendo os dados do registro a ser inserido
+            int* posicao_inserida: Variável para receber o offset no qual o registro foi escrito
+    */
+
+    fseek(arquivo_de_dados, 0, SEEK_END);
+    int posicao = ftell(arquivo_de_dados);
+
+    short tamanho_registro = strlen(string_registro);
+    fwrite(&tamanho_registro, sizeof(short), 1, arquivo_de_dados);
+
+    fwrite(string_registro, sizeof(char), tamanho_registro, arquivo_de_dados);
+    *posicao_inserida = posicao;
+}
+
 
 status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* posicao_encontrada)
 {
@@ -344,6 +372,7 @@ status_operacao busca_chave_em_pagina(registro chave, pagina pagina_alvo, int* p
     }
     return FALHA;
 }
+
 
 status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* posicao_encontrada, FILE* arvore_b)
 {
@@ -381,7 +410,7 @@ status_operacao busca_chave(int rrn, registro chave, int* rrn_encontrado, int* p
     return busca_chave(pagina_atual.filhos[*posicao_encontrada], chave, rrn_encontrado, posicao_encontrada, arvore_b);
 }
 
-// TODO
+
 status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
 {
     /*
@@ -393,20 +422,36 @@ status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
             Status SUCESSO caso a impressão seja feita com sucesso
             Status FALHA caso a página não possa ser lida (RRN inválido)
     */
-    return FALHA;
-}
+    fseek(arvore_b, sizeof(pagina) * rrn_alvo + TAMANHO_CABECALHO, SEEK_SET);
+    pagina pagina_lida;
+    int res = fread(&pagina_lida, sizeof(pagina), 1, arvore_b);
 
-// TODO
-status_operacao imprime_arvore(FILE* arvore_b)
-{
-    /*
-        Imprime o conteúdo do arquivo arvb
-        Entrada:
-            FILE* arvore_b: O descritor do arquivo contendo a árvore B
-        Retorno:
-            Status FALHA se a árvore não possa ser impressa (arquivo não aberto)
-            Status SUCESSO se a árvore foi impressa com sucesso
-    */
+    if (res <= 0)
+    {
+        return FALHA;
+    }
+
+    printf("\nPagina %d", rrn_alvo);
+    printf("\nChaves: ");
+
+    for (int i = 0; i < pagina_lida.num_chaves; i++)
+    {
+        printf("%s |", pagina_lida.chaves[i].identificador);
+    }
+
+    printf("\nOffsets: ");
+    for (int i = 0; i < pagina_lida.num_chaves; i++)
+    {
+        printf("%s |", pagina_lida.chaves[i].byte_offset);
+    }
+
+    printf("\nFilhos: ");
+    for (int i = 0; i <= pagina_lida.num_chaves; i++)
+    {
+        printf("%s |", pagina_lida.filhos[i]);
+    }
+
+    return SUCESSO;
 }
 
 // 
@@ -419,7 +464,7 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
     */
 }
 
-// TODO
+
 void modulo_imprimir_arvore_b(FILE* arvore_b)
 {
     /*
@@ -427,6 +472,28 @@ void modulo_imprimir_arvore_b(FILE* arvore_b)
         Entrada:
             FILE* arvore_b: O arquivo contendo a estrutura da árvore a ser impressa
     */
+
+    fseek(arvore_b, 0, SEEK_SET);
+
+    int rrn_raiz;
+    fread(&rrn_raiz, sizeof(int), 1, arvore_b);
+
+    int rrn_max = gerar_novo_rrn(arvore_b);
+
+    for (int i = 0; i < rrn_max; i++)
+    {
+        if (i == rrn_raiz)
+        {
+            printf("\n - - - - - - RAIZ - - - - - - ");
+            imprime_pagina(i, arvore_b);
+            printf("\n - - - - - - - - - - - - - - -\n");        
+        }
+        else
+        {
+            imprime_pagina(i, arvore_b);
+            printf("\n");
+        }
+    }
 }
 
 // 
@@ -439,27 +506,34 @@ void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_operacoes)
     */
 }
 
-// Parcial
-void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, registro chave)
+
+void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_string)
 {
     /*
         Realiza a operação de inserção no arquivo arvb e no arquivo de dados, imprime os resultados na saída padrão
         Entradas:
             FILE* arvore_b: O descritor do arquivo para se realizar a busca
-            registro chave: O registro a ser inserido na árvore
+            FILE* arquivo_de_dados: O descritor do arquivo contendo os dados dos jogos
+            char* registro_em_string: A string contendo os dados do registro a ser inserido
     */
-    status_operacao dados;
-    dados = insere_registro_arquivo_de_dados();
 
-    if (dados == FALHA)
-    {
-        return;
-    }
+    int posicao;
+    insere_registro_arquivo_de_dados(arquivo_de_dados, registro_em_string, &posicao);
+    char nome[TAMANHO_MAXIMO_BUFFER];
+    ler_identificador_registro(registro_em_string, nome);
+
+    printf("\nInsercao do registro de chave \"%s\"", nome);
+
+    registro chave;
+    chave.byte_offset = posicao;
+    strcpy(chave.identificador, nome);
 
     status_insercao op;
     int raiz = rrn_raiz(arvore_b);
     int filho_d_pro = -1;
     registro chave_pro;
+
+    printf("\n%s (%d bytes - offset %d)", registro_em_string, strlen(registro_em_string), posicao);
 
     if (insere_chave(raiz, chave, &filho_d_pro, &chave_pro, arvore_b) == PROMOCAO)
     {
@@ -477,8 +551,12 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, registro chave)
     fseek(arvore_b, 0, SEEK_SET);
     fwrite(raiz, sizeof(int), 1, arvore_b);
 
-    // Printar os dados da insercao
+    /*
+        Insercao do registro de chave "181"
+        181|Pac-Man|1980|Maze|Namco|Arcade| (35 bytes - offset 3132)
+    */
 }
+
 
 int rrn_raiz(FILE* arvore_b)
 {
@@ -495,15 +573,22 @@ int rrn_raiz(FILE* arvore_b)
     return rrn;
 }
 
-// Parcial
-void modulo_busca(FILE* arvore_b, registro chave)
+
+void modulo_busca(FILE* arvore_b, char* identificador_registro, FILE* arquivo_de_dados)
 {
     /*
         Realiza a operação de busca no arquivo arvb e imprime os resultados na saída padrão
         Entradas:
             FILE* arvore_b: O descritor do arquivo para se realizar a busca
-            registro chave: O registro a ser procurado na árvore
+            FILE* arquivo_de_dados: O descritor do aquivo contendo os dados dos jogos
+            char* identificador_registro: O identificador do registro a ser procurado
     */
+
+    registro chave;
+    chave.byte_offset = -1;
+    strcpy(chave.identificador, identificador_registro);
+
+    printf("\nBusca pelo registro de chave \"%s\"", chave.identificador);
     
     int rrn_encontrado;
     int posicao_encontrada;
@@ -513,13 +598,35 @@ void modulo_busca(FILE* arvore_b, registro chave)
     status_operacao op;
     op = busca_chave(raiz, chave, &rrn_encontrado, &posicao_encontrada, arvore_b);
 
+    int offset_pagina = TAMANHO_CABECALHO + sizeof(registro) * rrn_encontrado;
+    pagina pagina_encontrada;
+    fread(&pagina_encontrada, sizeof(pagina), 1, arvore_b);
+
+    int offset_no_arquivo = pagina_encontrada.chaves[posicao_encontrada].byte_offset;
+
+    fseek(arquivo_de_dados, offset_no_arquivo, SEEK_SET);
+
+    char dados_do_jogo[TAMANHO_MAXIMO_BUFFER];
+    int tamanho_do_registro;
+    fread(&tamanho_do_registro, sizeof(short), 1, arquivo_de_dados); // SHORT ou INT?
+    fread(dados_do_jogo, sizeof(char), tamanho_do_registro, arquivo_de_dados);
+
+    printf("\n%s (%d bytes - offset %d)", dados_do_jogo, tamanho_do_registro, offset_no_arquivo);
+
+    /*
+    Busca pelo registro de chave "74"
+    74|Super Mario Kart|1992|Kart racing|Nintendo|Super NES| (56 bytes - offset 1036)
+    */
+
     // Printar informações aqui
 }
+
 
 void ler_identificador_registro(char *registro, char *nome)
 {
     /*
     Recupera a string que serve como identificador de um registro
+    [Função reutilizada do trabalho 1]
 
     Parâmetros:
         char* registro: String contendo o registro a ser lido
@@ -539,6 +646,7 @@ void ler_identificador_registro(char *registro, char *nome)
     }
     nome[i] = '\0';
 }
+
 
 int main(int argc, char *argv[]) 
 {
