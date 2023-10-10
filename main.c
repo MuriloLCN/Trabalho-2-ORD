@@ -593,5 +593,7 @@ void gerenciador(int* raiz)
     fwrite(raiz, sizeof(int), 1, arvb);
 }
 
-int main()
+int main(
+    
+)
 */
