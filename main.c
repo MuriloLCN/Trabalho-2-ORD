@@ -462,8 +462,9 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
         Entrada:
             FILE* arvore_b: Descritor do arquivo vazio para a criação do índice
     */
-}
 
+
+}
 
 void modulo_imprimir_arvore_b(FILE* arvore_b)
 {
@@ -496,16 +497,50 @@ void modulo_imprimir_arvore_b(FILE* arvore_b)
     }
 }
 
-// 
-void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_operacoes)
+void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_dados, FILE* arquivo_de_operacoes)
 {
     /*
         Procedimento que abre o arquivo de operações e realiza as operações descritas nela, chamando modulo_insercao() ou modulo_busca()
         conforme necessário.
 
-    */
-}
+        Parâmetros:
+        FILE* arvore_b: O descritor do arquivo contento os dados do registros sobre os quais as operações serão realizadas
+        FILE* arquivo_de_operacoes: O descritor do arquivo contendo as operações a serem realizadas junto com os seus argumentos.
 
+    */
+   char comando;
+   char parametro[TAMANHO_MAXIMO_BUFFER];
+   int tamanho_parametro;
+   int identificador;
+
+   while (comando = fgetc(arquivo_de_operacoes) != EOF) {
+        fseek(arquivo_de_operacoes, 1, SEEK_CUR);
+        fgets(parametro, 1024, arquivo_de_operacoes);
+
+        tamanho_parametro = strlen(parametro);
+
+        if (parametro[tamanho_parametro - 1] == '\n') {
+            parametro[tamanho_parametro - 1] = '\0';
+        }
+
+        switch(comando) {
+            case 'b':
+                printf("\n");
+                ler_identificador_registro(parametro, identificador);
+                modulo_busca(arvore_b, identificador, arquivo_de_dados);
+                break;
+            case 'i':
+                printf("\n");
+                modulo_insercao(arvore_b, arquivo_de_dados, parametro);
+                break;
+            default:
+                printf("\n");
+                printf("\nA operacao '%c' nao e uma operacao valida.", comando);
+                break;
+        }
+   }
+
+}
 
 void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_string)
 {
@@ -551,12 +586,7 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_s
     fseek(arvore_b, 0, SEEK_SET);
     fwrite(raiz, sizeof(int), 1, arvore_b);
 
-    /*
-        Insercao do registro de chave "181"
-        181|Pac-Man|1980|Maze|Namco|Arcade| (35 bytes - offset 3132)
-    */
 }
-
 
 int rrn_raiz(FILE* arvore_b)
 {
@@ -608,17 +638,11 @@ void modulo_busca(FILE* arvore_b, char* identificador_registro, FILE* arquivo_de
 
     char dados_do_jogo[TAMANHO_MAXIMO_BUFFER];
     int tamanho_do_registro;
-    fread(&tamanho_do_registro, sizeof(short), 1, arquivo_de_dados); // SHORT ou INT?
+    fread(&tamanho_do_registro, sizeof(short), 1, arquivo_de_dados);
     fread(dados_do_jogo, sizeof(char), tamanho_do_registro, arquivo_de_dados);
 
     printf("\n%s (%d bytes - offset %d)", dados_do_jogo, tamanho_do_registro, offset_no_arquivo);
 
-    /*
-    Busca pelo registro de chave "74"
-    74|Super Mario Kart|1992|Kart racing|Nintendo|Super NES| (56 bytes - offset 1036)
-    */
-
-    // Printar informações aqui
 }
 
 
@@ -650,12 +674,8 @@ void ler_identificador_registro(char *registro, char *nome)
 
 int main(int argc, char *argv[]) 
 {
-    /*
-        Ponto principal de entrada do programa
-    */
-
-    
     FILE *arquivo_de_dados = fopen(NOME_ARQUIVO_DADOS, "rb+");
+    FILE *btree = fopen(NOME_ARQUIVO_DADOS, "rb+");
 
     if (arquivo_de_dados == NULL)
     {
@@ -667,21 +687,23 @@ int main(int argc, char *argv[])
     {
         printf("Modo de criacao do indice ativado... "); // Formatar de acordo com os logs do trabalho
         // Criar novo arquivo arvb
-        modulo_criar_indice(); // Ainda sem parâmetros
+        modulo_criar_indice(btree, arquivo_de_dados); // Ainda sem parâmetros
     }
     else if (argc == 3 && strcmp(argv[1], "-e") == 0)
     {
-    		printf("Modo de realizar operacoes ativado... "); // Formatar de acordo com os logs do trabalho
-        FILE *btree = fopen(NOME_ARQUIVO_DADOS, "rb+"); // Abrir arquivo arvore b
+    	printf("Modo de realizar operacoes ativado... "); // Formatar de acordo com os logs do trabalho
+        FILE *arquivo_de_operacoes = fopen(argv[2], "rb");
+        // Abrir aquivo arvore b
         // Verificar se existe mesmo
-        modulo_realizar_operacoes(); // Ainda sem parâmetros
+        modulo_realizar_operacoes(btree, arquivo_de_dados, arquivo_de_operacoes); // Ainda sem parâmetros
+        fclose(btree);
     }
     else if (argc == 2 && strcmp(argv[1], "-p") == 0)
     {
-    		printf("Modo de impressao da arvore ativado... "); // Formatar de acordo com os logs do trabalho
+    	printf("Modo de impressao da arvore ativado... "); // Formatar de acordo com os logs do trabalho
         // Abrir aquivo arvore b
         // Verificar se existe mesmo
-        modulo_imprimir_arvore_b(); // Ainda sem parâmetros
+        modulo_imprimir_arvore_b(btree); 
     }
     else 
     {
