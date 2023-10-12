@@ -532,8 +532,6 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
         
         [Função reutilizada em grande parte do trabalho 1]
     */
-<<<<<<< Updated upstream
-=======
 
     char identificador_atual[TAMANHO_MAXIMO_BUFFER];
     char buffer[TAMANHO_MAXIMO_BUFFER];
@@ -568,7 +566,6 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
         posicao_do_ponteiro_de_leitura += sizeof(short) + tamanho_registro;
 
     } while (0 == feof(arquivo_de_dados));
->>>>>>> Stashed changes
 }
 
 
@@ -603,21 +600,18 @@ void modulo_imprimir_arvore_b(FILE* arvore_b)
     }
 }
 
-<<<<<<< Updated upstream
-// 
-void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_operacoes)
-=======
 
 void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_dados, FILE* arquivo_de_operacoes)
->>>>>>> Stashed changes
 {
     /*
         Procedimento que abre o arquivo de operações e realiza as operações descritas nela, chamando modulo_insercao() ou modulo_busca()
         conforme necessário.
 
+        Parâmetros:
+        FILE* arvore_b: O descritor do arquivo contento os dados do registros sobre os quais as operações serão realizadas
+        FILE* arquivo_de_operacoes: O descritor do arquivo contendo as operações a serem realizadas junto com os seus argumentos.
+
     */
-<<<<<<< Updated upstream
-=======
    char comando;
    char parametro[TAMANHO_MAXIMO_BUFFER];
    int tamanho_parametro;
@@ -650,7 +644,6 @@ void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_dados, FILE* arq
         }
    }
 
->>>>>>> Stashed changes
 }
 
 
@@ -699,10 +692,6 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_s
     fseek(arvore_b, 0, SEEK_SET);
     fwrite(&raiz, sizeof(int), 1, arvore_b);
 
-    /*
-        Insercao do registro de chave "181"
-        181|Pac-Man|1980|Maze|Namco|Arcade| (35 bytes - offset 3132)
-    */
 }
 
 
@@ -756,19 +745,12 @@ void modulo_busca(FILE* arvore_b, char* identificador_registro, FILE* arquivo_de
 
     char dados_do_jogo[TAMANHO_MAXIMO_BUFFER];
     int tamanho_do_registro;
-    fread(&tamanho_do_registro, sizeof(short), 1, arquivo_de_dados); // SHORT ou INT?
+    fread(&tamanho_do_registro, sizeof(short), 1, arquivo_de_dados);
     fread(dados_do_jogo, sizeof(char), tamanho_do_registro, arquivo_de_dados);
 
     printf("\n%s (%d bytes - offset %d)", dados_do_jogo, tamanho_do_registro, offset_no_arquivo);
 
-    /*
-    Busca pelo registro de chave "74"
-    74|Super Mario Kart|1992|Kart racing|Nintendo|Super NES| (56 bytes - offset 1036)
-    */
-
-    // Printar informações aqui
 }
-
 
 void ler_identificador_registro(char *registro, char *nome)
 {
@@ -798,16 +780,8 @@ void ler_identificador_registro(char *registro, char *nome)
 
 int main(int argc, char *argv[]) 
 {
-    /*
-        Ponto principal de entrada do programa
-    */
-
-    
     FILE *arquivo_de_dados = fopen(NOME_ARQUIVO_DADOS, "rb+");
-<<<<<<< Updated upstream
-=======
     // FILE *btree = fopen("arvb.dat", "rb+");
->>>>>>> Stashed changes
 
     if (arquivo_de_dados == NULL)
     {
@@ -817,25 +791,6 @@ int main(int argc, char *argv[])
     
     if (argc == 2 && strcmp(argv[1], "-c") == 0)
     {
-<<<<<<< Updated upstream
-        printf("Modo de criacao do indice ativado... "); // Formatar de acordo com os logs do trabalho
-        // Criar novo arquivo arvb
-        modulo_criar_indice(); // Ainda sem parâmetros
-    }
-    else if (argc == 3 && strcmp(argv[1], "-e") == 0)
-    {
-    		printf("Modo de realizar operacoes ativado... "); // Formatar de acordo com os logs do trabalho
-        FILE *btree = fopen(NOME_ARQUIVO_DADOS, "rb+"); // Abrir arquivo arvore b
-        // Verificar se existe mesmo
-        modulo_realizar_operacoes(); // Ainda sem parâmetros
-    }
-    else if (argc == 2 && strcmp(argv[1], "-p") == 0)
-    {
-    		printf("Modo de impressao da arvore ativado... "); // Formatar de acordo com os logs do trabalho
-        // Abrir aquivo arvore b
-        // Verificar se existe mesmo
-        modulo_imprimir_arvore_b(); // Ainda sem parâmetros
-=======
         printf("Modo de criacao do indice ativado... "); 
         FILE* arvore_b = fopen("arvb.dat", "w+b");
         modulo_criar_indice(arvore_b, arquivo_de_dados); 
@@ -868,7 +823,6 @@ int main(int argc, char *argv[])
             return 0;
         }
         modulo_imprimir_arvore_b(arvore_b); 
->>>>>>> Stashed changes
     }
     else 
     {
