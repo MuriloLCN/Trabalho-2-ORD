@@ -36,7 +36,7 @@ typedef enum {SEM_PROMOCAO, PROMOCAO, ERRO} status_insercao;
 typedef enum {SUCESSO, FALHA} status_operacao;
 
 // Protótipos
-status_operacao busca_chave_em_pagina(registro* chave, pagina pagina_alvo, int* posicao_encontrada);
+status_operacao busca_chave_em_pagina(registro* chave, pagina* pagina_alvo, int* posicao_encontrada);
 int rrn_raiz(FILE* arvore_b);
 void ler_identificador_registro(char *registro, char *nome);
 void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_string);
@@ -159,18 +159,41 @@ void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave
             int* num_chaves: Campo número de chaves da página
     */
 
+    printf("\nInserindo a chave %s na pagina", chave_inserida.identificador);
+
     int i = *num_chaves;
 
-    while (i > 0 && strcmp(chave_inserida.identificador, chaves[i].identificador) < 0)
+    chaves[i].byte_offset = chave_inserida.byte_offset;
+    strcpy(chaves[i].identificador, chave_inserida.identificador);
+
+    filhos[i+1] = rrn_filho_dir_chave;
+
+    while (i > 0 && atoi(chaves[i].identificador) < atoi(chaves[i-1].identificador))
     {
-        chaves[i] = chaves[i-1];
+        chaves[i].byte_offset = chaves[i-1].byte_offset;
+        strcpy(chaves[i].identificador, chaves[i-1].identificador);
+
         filhos[i+1] = filhos[i];
         i--;
     }
+    // int i = *num_chaves;
+
+    // //while (i > 0 && strcmp(chave_inserida.identificador, chaves[i].identificador) < 0)
+    // while (i > 0 && atoi(chave_inserida.identificador) < atoi(chaves[i].identificador))
+    // {
+    //     //chaves[i] = chaves[i-1];
+    //     chaves[i].byte_offset = chaves[i-1].byte_offset;
+    //     strcpy(chaves[i].identificador, chaves[i-1].identificador);
+
+    //     filhos[i+1] = filhos[i];
+    //     i--;
+    // }
 
     *num_chaves = *num_chaves + 1;
-    chaves[i] = chave_inserida;
-    filhos[i+1] = rrn_filho_dir_chave;
+    //chaves[i] = chave_inserida;
+    //chaves[i].byte_offset = chave_inserida.byte_offset;
+    //strcpy(chaves[i].identificador, chave_inserida.identificador);
+    //filhos[i+1] = rrn_filho_dir_chave;
 }
 
 
@@ -184,13 +207,15 @@ void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
     */
     pagina_destino->num_chaves = pagina_origem->num_chaves;
     
-    for (int i = 0; i < pagina_destino->num_chaves; i++)
+    //for (int i = 0; i < pagina_destino->num_chaves; i++)
+    for (int i = 0; i < ORDEM_ARVORE; i++)
     {
         pagina_destino->chaves[i].byte_offset = pagina_origem->chaves[i].byte_offset;
         strcpy(pagina_destino->chaves[i].identificador, pagina_origem->chaves[i].identificador);
     }
 
-    for (int j = 0; j <= pagina_destino->num_chaves; j++)
+    //for (int j = 0; j <= pagina_destino->num_chaves; j++)
+    for (int j = 0; j <= ORDEM_ARVORE; j++)
     {
         pagina_destino->filhos[j] = pagina_origem->filhos[j];
     }
@@ -248,7 +273,8 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
     // Inserindo no vetor
     int t = num_chaves;
 
-    while (t > 0 && strcmp(chave_inserida.identificador, vet_chaves[t].identificador) < 0)
+    // while (t > 0 && strcmp(chave_inserida.identificador, vet_chaves[t].identificador) < 0)
+    while (t > 0 && atoi(chave_inserida.identificador) < atoi(vet_chaves[t].identificador))
     {
         vet_chaves[t] = vet_chaves[t-1];
         vet_filhos[t+1] = vet_filhos[t];
@@ -306,7 +332,7 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
 }
 
 
-status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b)
+status_insercao insere_chave(int rrn_atual, registro* chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b)
 {
     /*
         Insere uma chave na árvore B
@@ -324,7 +350,9 @@ status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_p
 
     if (rrn_atual == NULO)
     {
-        *chave_promovida = chave;
+        //*chave_promovida = chave;
+        chave_promovida->byte_offset = chave->byte_offset;
+        strcpy(chave_promovida->identificador, chave->identificador);
         *filho_direito_promovido = NULO;
         return PROMOCAO;
     }
@@ -336,8 +364,8 @@ status_insercao insere_chave(int rrn_atual, registro chave, int* filho_direito_p
     //printf("\nPagina lida: %d", res);
     //imprpag(pagina_atual);
 
-    int posicao_encontrada = 0;
-    status_operacao achou = busca_chave_em_pagina(&chave, pagina_atual, &posicao_encontrada);
+    int posicao_encontrada = -1;
+    status_operacao achou = busca_chave_em_pagina(chave, &pagina_atual, &posicao_encontrada);
     
     //printf("\nElemento '%s' deve ser inserido na posicao %d", chave.identificador, posicao_encontrada);
     if (achou == SUCESSO)
@@ -399,7 +427,7 @@ void insere_registro_arquivo_de_dados(FILE* arquivo_de_dados, char* string_regis
 }
 
 
-status_operacao busca_chave_em_pagina(registro* chave, pagina pagina_alvo, int* posicao_encontrada)
+status_operacao busca_chave_em_pagina(registro* chave, pagina* pagina_alvo, int* posicao_encontrada)
 {
     /*
         Realiza a busca por uma chave em uma página
@@ -413,14 +441,15 @@ status_operacao busca_chave_em_pagina(registro* chave, pagina pagina_alvo, int* 
     */
 
     int i = 0;
-    while (i < pagina_alvo.num_chaves && strcmp(chave->identificador, pagina_alvo.chaves[i].identificador) > 0)
+    //while (i < pagina_alvo.num_chaves && strcmp(chave->identificador, pagina_alvo.chaves[i].identificador) > 0)
+    while (i < pagina_alvo->num_chaves && atoi(chave->identificador) > atoi(pagina_alvo->chaves[i].identificador))
     {
         i += 1;
-        *posicao_encontrada = i;
-        
     }
-
-    if (*posicao_encontrada < pagina_alvo.num_chaves && strcmp(chave->identificador, pagina_alvo.chaves[i].identificador) == 0)
+    *posicao_encontrada = i;
+        
+    // if (*posicao_encontrada < pagina_alvo->num_chaves && strcmp(chave->identificador, pagina_alvo->chaves[i].identificador) == 0)
+    if (*posicao_encontrada < pagina_alvo->num_chaves && atoi(chave->identificador) == atoi(pagina_alvo->chaves[i].identificador))
     {
         return SUCESSO;
     }
@@ -452,15 +481,20 @@ status_operacao busca_chave(int rrn, registro* chave, int* rrn_encontrado, int* 
 
     le_pagina(rrn, &pagina_atual, arvore_b);
 
-    status_operacao achou = busca_chave_em_pagina(chave, pagina_atual, &posicao);
+    printf("\nBuscando a chave %s na pagina: ", chave->identificador);
+    imprpag(pagina_atual);
+
+    status_operacao achou = busca_chave_em_pagina(chave, &pagina_atual, &posicao);
 
     if (achou == SUCESSO)
     {
         *rrn_encontrado = rrn;
         *posicao_encontrada = posicao;
+        printf("\nAchou :D");
         return SUCESSO;
     }
 
+    printf("\nNao achou, deveria estar na posicao %d, indo para filho de rrn %d", posicao, pagina_atual.filhos[posicao]);
     return busca_chave(pagina_atual.filhos[posicao], chave, rrn_encontrado, posicao_encontrada, arvore_b);
 }
 
@@ -509,7 +543,7 @@ status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
 }
 
 
-void modulo_insercao_arvb_apenas(FILE* arvore_b, registro novo_registro)
+void modulo_insercao_arvb_apenas(FILE* arvore_b, registro* novo_registro)
 {
     /*
         Insere um registro no arquivo arvore b sem inserí-lo no arquivo de dados
@@ -542,11 +576,12 @@ void modulo_insercao_arvb_apenas(FILE* arvore_b, registro novo_registro)
 
         inicializar_pagina(&nova_pagina);
 
-        nova_pagina.chaves[0] = chave_pro;
+        //nova_pagina.chaves[0] = chave_pro;
+        nova_pagina.chaves[0].byte_offset = chave_pro.byte_offset;
+        strcpy(nova_pagina.chaves[0].identificador, chave_pro.identificador);
         nova_pagina.filhos[0] = raiz;
         nova_pagina.filhos[1] = filho_d_pro;
         nova_pagina.num_chaves += 1;
-
 
         int rrn = gerar_novo_rrn(arvore_b);
         
@@ -586,9 +621,15 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
     int res = 1;
 
     int posicao_do_ponteiro_de_leitura = sizeof(int);
-    do
-    {
-        fread(&tamanho_registro, sizeof(short), 1, arquivo_de_dados);
+    //do
+    //{
+    while (0 == feof(arquivo_de_dados)) {
+        int res = fread(&tamanho_registro, sizeof(short), 1, arquivo_de_dados);
+
+        if (res == 0)
+        {
+            break;
+        }
 
         fread(buffer, sizeof(char), tamanho_registro, arquivo_de_dados);
 
@@ -598,11 +639,12 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
         novo_registro.byte_offset = posicao_do_ponteiro_de_leitura;
         strcpy(novo_registro.identificador, identificador_atual);
 
-        modulo_insercao_arvb_apenas(arvore_b, novo_registro);
+        printf("\nCriacao do indice: insersao do elemento %s", novo_registro.identificador);
+        modulo_insercao_arvb_apenas(arvore_b, &novo_registro);
 
         posicao_do_ponteiro_de_leitura += sizeof(short) + tamanho_registro;
-
-    } while (0 == feof(arquivo_de_dados));
+    }
+    //} while (0 == feof(arquivo_de_dados));
 }
 
 
@@ -712,7 +754,7 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_s
 
     printf("\n%s (%d bytes - offset %d)", registro_em_string, strlen(registro_em_string), posicao);
 
-    if (insere_chave(raiz, chave, &filho_d_pro, &chave_pro, arvore_b) == PROMOCAO)
+    if (insere_chave(raiz, &chave, &filho_d_pro, &chave_pro, arvore_b) == PROMOCAO)
     {
         pagina nova_pagina;
 
