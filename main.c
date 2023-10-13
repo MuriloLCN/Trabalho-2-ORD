@@ -170,12 +170,23 @@ void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave
 
     while (i > 0 && atoi(chaves[i].identificador) < atoi(chaves[i-1].identificador))
     {
+        registro temp;
+        temp.byte_offset = chaves[i].byte_offset;
+        strcpy(temp.identificador, chaves[i].identificador);
+
         chaves[i].byte_offset = chaves[i-1].byte_offset;
         strcpy(chaves[i].identificador, chaves[i-1].identificador);
 
+        chaves[i-1].byte_offset = temp.byte_offset;
+        strcpy(chaves[i-1].identificador, temp.identificador);
+
+        int tmp;
+        tmp = filhos[i+1];
         filhos[i+1] = filhos[i];
+        filhos[i] = tmp;
         i--;
     }
+
     // int i = *num_chaves;
 
     // //while (i > 0 && strcmp(chave_inserida.identificador, chaves[i].identificador) < 0)
@@ -237,7 +248,7 @@ void imprpag(pagina pag)
 }
 
 
-void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida,
+void divide_pagina(registro* chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida,
                    int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b)
 {
     /*
@@ -253,7 +264,8 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
     //imprpag(*pagina_original);
 
     // Copiando os dados da página original
-    registro vet_chaves[ORDEM_ARVORE];
+
+    registro vet_chaves[ORDEM_ARVORE]; // Com um elemento a mais para acomodar o registro adicionado, caso necessário
     int vet_filhos[ORDEM_ARVORE + 1];
     int num_chaves;
 
@@ -273,18 +285,44 @@ void divide_pagina(registro chave_inserida, int rrn_inserido, pagina *pagina_ori
     // Inserindo no vetor
     int t = num_chaves;
 
-    // while (t > 0 && strcmp(chave_inserida.identificador, vet_chaves[t].identificador) < 0)
-    while (t > 0 && atoi(chave_inserida.identificador) < atoi(vet_chaves[t].identificador))
+    vet_chaves[t].byte_offset = chave_inserida->byte_offset;
+    strcpy(vet_chaves[t].identificador, chave_inserida->identificador);
+    vet_filhos[t+1] = rrn_inserido;
+
+    registro temp;
+
+    while (t > 0 && atoi(vet_chaves[t].identificador) < atoi(vet_chaves[t-1].identificador))
     {
-        vet_chaves[t] = vet_chaves[t-1];
+        temp.byte_offset = vet_chaves[t].byte_offset;
+        strcpy(temp.identificador, vet_chaves[t].identificador);
+
+        vet_chaves[t].byte_offset = vet_chaves[t-1].byte_offset;
+        strcpy(vet_chaves[t].identificador, vet_chaves[t-1].identificador);
+
+        vet_chaves[t-1].byte_offset = temp.byte_offset;
+        strcpy(vet_chaves[t-1].identificador, temp.identificador);
+
+        int tmp;
+        tmp = vet_filhos[t+1];
         vet_filhos[t+1] = vet_filhos[t];
+        vet_filhos[t] = tmp;
+        
         t--;
     }
 
+    // t = num_chaves;
+    // // while (t > 0 && strcmp(chave_inserida.identificador, vet_chaves[t].identificador) < 0)
+    // while (t > 0 && atoi(chave_inserida->identificador) < atoi(vet_chaves[t].identificador))
+    // {
+    //     vet_chaves[t] = vet_chaves[t-1];
+    //     vet_filhos[t+1] = vet_filhos[t];
+    //     t--;
+    // }
+
     num_chaves += 1;
 
-    vet_chaves[t].byte_offset = chave_inserida.byte_offset;
-    strcpy(vet_chaves[t].identificador, chave_inserida.identificador);
+    vet_chaves[t].byte_offset = chave_inserida->byte_offset;
+    strcpy(vet_chaves[t].identificador, chave_inserida->identificador);
 
     vet_filhos[t+1] = rrn_inserido;
 
@@ -397,7 +435,14 @@ status_insercao insere_chave(int rrn_atual, registro* chave, int* filho_direito_
     pagina nova_pagina;
     inicializar_pagina(&nova_pagina);
 
-    divide_pagina(chave_pro, rrn_pro, &pagina_atual, chave_promovida, filho_direito_promovido, &nova_pagina, arvore_b);
+    printf("\nDIVIDINDO A PAGINA AO INSERIR A CHAVE: %s, antes:", chave_pro.identificador);
+    imprpag(pagina_atual);
+
+    divide_pagina(&chave_pro, rrn_pro, &pagina_atual, chave_promovida, filho_direito_promovido, &nova_pagina, arvore_b);
+
+    printf("\ndepois:");
+    imprpag(pagina_atual);
+    imprpag(nova_pagina);
 
     escreve_pagina(rrn_atual, &pagina_atual, arvore_b);
     escreve_pagina(*filho_direito_promovido, &nova_pagina, arvore_b);
