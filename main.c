@@ -452,7 +452,7 @@ void insere_registro_arquivo_de_dados(FILE* arquivo_de_dados, char* string_regis
     short tamanho_registro = strlen(string_registro);
     fwrite(&tamanho_registro, sizeof(short), 1, arquivo_de_dados);
 
-    fwrite(string_registro, sizeof(char), tamanho_registro, arquivo_de_dados);
+    fwrite(string_registro, tamanho_registro, 1, arquivo_de_dados);
     *posicao_inserida = posicao;
 }
 
@@ -773,24 +773,36 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_s
             char* registro_em_string: A string contendo os dados do registro a ser inserido
     */
 
-    int posicao;
-    insere_registro_arquivo_de_dados(arquivo_de_dados, registro_em_string, &posicao);
+    status_operacao ja_existe;
+    registro chave;
+    chave.byte_offset = -1;
+
     char nome[TAMANHO_MAXIMO_BUFFER];
     ler_identificador_registro(registro_em_string, nome);
-
-    printf("\nInsercao do registro de chave \"%s\"", nome);
-
-    registro chave;
-    chave.byte_offset = posicao;
     strcpy(chave.identificador, nome);
 
-    status_insercao op;
     int raiz = rrn_raiz(arvore_b);
+    int rrn_encontrado, pos_encontrada;
+
+    ja_existe = busca_chave(raiz, &chave, &rrn_encontrado, &pos_encontrada, arvore_b);
+
+    if (ja_existe == SUCESSO)
+    {
+        printf("\nRegistro ja existe no arquivo");
+        return;
+    }
+
+    int posicao;
+    insere_registro_arquivo_de_dados(arquivo_de_dados, registro_em_string, &posicao);
+
+    // status_insercao op;
+
     int filho_d_pro = -1;
     registro chave_pro;
 
-    printf("\n%s (%d bytes - offset %d)", registro_em_string, strlen(registro_em_string), posicao);
-
+    int tam_reg = strlen(registro_em_string);
+    printf("\n> %s (%d bytes - offset %d)", registro_em_string, tam_reg, posicao);
+    
     if (insere_chave(raiz, &chave, &filho_d_pro, &chave_pro, arvore_b) == PROMOCAO)
     {
         pagina nova_pagina;
@@ -874,6 +886,7 @@ void modulo_busca(FILE* arvore_b, char* identificador_registro, FILE* arquivo_de
     int tamanho_do_registro;
     fread(&tamanho_do_registro, sizeof(short), 1, arquivo_de_dados);
     fread(dados_do_jogo, sizeof(char), tamanho_do_registro, arquivo_de_dados);
+    dados_do_jogo[tamanho_do_registro] = '\0';
 
     printf("\n> %s (%d bytes - offset %d)", dados_do_jogo, tamanho_do_registro, offset_no_arquivo);
 
