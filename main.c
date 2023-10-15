@@ -449,7 +449,7 @@ void insere_registro_arquivo_de_dados(FILE* arquivo_de_dados, char* string_regis
     fseek(arquivo_de_dados, 0, SEEK_END);
     int posicao = ftell(arquivo_de_dados);
 
-    short tamanho_registro = strlen(string_registro);
+    short tamanho_registro = strlen(string_registro) - 1;
     fwrite(&tamanho_registro, sizeof(short), 1, arquivo_de_dados);
 
     fwrite(string_registro, tamanho_registro, 1, arquivo_de_dados);
@@ -786,6 +786,8 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_s
 
     ja_existe = busca_chave(raiz, &chave, &rrn_encontrado, &pos_encontrada, arvore_b);
 
+    printf("\nInserindo registro %s", registro_em_string);
+
     if (ja_existe == SUCESSO)
     {
         printf("\nRegistro ja existe no arquivo");
@@ -794,14 +796,17 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_s
 
     int posicao;
     insere_registro_arquivo_de_dados(arquivo_de_dados, registro_em_string, &posicao);
+    chave.byte_offset = posicao;
 
     // status_insercao op;
 
     int filho_d_pro = -1;
     registro chave_pro;
 
-    int tam_reg = strlen(registro_em_string);
-    printf("\n> %s (%d bytes - offset %d)", registro_em_string, tam_reg, posicao);
+    int tam_reg = strlen(registro_em_string) - 1;
+    //printf("\n> %s (%d bytes - offset %d)", registro_em_string, tam_reg, posicao);
+    
+    printf("\n(tamanho: %d bytes, offset: %d)", tam_reg, posicao);
     
     if (insere_chave(raiz, &chave, &filho_d_pro, &chave_pro, arvore_b) == PROMOCAO)
     {
