@@ -1,5 +1,6 @@
 /*
     Segundo trabalho avaliativo
+    Universidade Estadual de Maringá (UEM) - Ciência da Computação
     Disciplina 6897 - Organização e recuperação de dados
     Professora: Valeria Delisandra Feltrim
     Alunos:
@@ -7,7 +8,7 @@
         Murilo Luis Calvo Neves (RA: 129037)
 
     Estatísticas:
-    - Total de commits: 34
+    - Total de commits: 35
     - Horas debuggando: 14+
 */
 
@@ -43,7 +44,6 @@ void ler_identificador_registro(char *registro, char *nome);
 void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_string);
 void modulo_busca(FILE* arvore_b, char* identificador_registro, FILE* arquivo_de_dados);
 
-
 int converte_rrn_para_offset(int rrn)
 {
     /*
@@ -53,7 +53,6 @@ int converte_rrn_para_offset(int rrn)
     */
     return (rrn * sizeof(pagina)) + TAMANHO_CABECALHO;
 }
-
 
 status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b)
 {   
@@ -79,7 +78,6 @@ status_operacao le_pagina(int rrn, pagina* pagina_de_destino, FILE* arvore_b)
     return FALHA;
 } 
 
-
 status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b)
 {
     /*
@@ -104,7 +102,6 @@ status_operacao escreve_pagina(int rrn, pagina* pagina_de_origem, FILE* arvore_b
     return FALHA;
 }
 
-
 int gerar_novo_rrn(FILE* arvore_b)
 {
     /*
@@ -123,7 +120,6 @@ int gerar_novo_rrn(FILE* arvore_b)
 
     return (offset - tamanho_cabecalho) / tamanho_pagina;
 }
-
 
 void inicializar_pagina(pagina* nova_pagina)
 {
@@ -146,7 +142,6 @@ void inicializar_pagina(pagina* nova_pagina)
         nova_pagina->filhos[j] = -1;
     }
 }
-
 
 void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave, registro chaves[], int filhos[], int* num_chaves)
 {
@@ -188,7 +183,6 @@ void inserir_elemento_em_pagina(registro chave_inserida, int rrn_filho_dir_chave
     *num_chaves = *num_chaves + 1;
 }
 
-
 void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
 {
     /*
@@ -210,7 +204,6 @@ void copiar_pagina(pagina* pagina_origem, pagina* pagina_destino)
         pagina_destino->filhos[j] = pagina_origem->filhos[j];
     }
 }
-
 
 void divide_pagina(registro* chave_inserida, int rrn_inserido, pagina *pagina_original, registro* chave_promovida,
                    int* filho_direito_promovido, pagina* nova_pagina_gerada, FILE* arvore_b)
@@ -319,7 +312,6 @@ void divide_pagina(registro* chave_inserida, int rrn_inserido, pagina *pagina_or
     nova_pagina_gerada->filhos[nova_pagina_gerada->num_chaves] = vet_filhos[i];
 }
 
-
 status_insercao insere_chave(int rrn_atual, registro* chave, int* filho_direito_promovido, registro* chave_promovida, FILE* arvore_b)
 {
     /*
@@ -386,7 +378,6 @@ status_insercao insere_chave(int rrn_atual, registro* chave, int* filho_direito_
     return PROMOCAO;
 }
 
-
 void insere_registro_arquivo_de_dados(FILE* arquivo_de_dados, char* string_registro, int* posicao_inserida)
 {
     /*
@@ -406,7 +397,6 @@ void insere_registro_arquivo_de_dados(FILE* arquivo_de_dados, char* string_regis
     fwrite(string_registro, tamanho_registro, 1, arquivo_de_dados);
     *posicao_inserida = posicao;
 }
-
 
 status_operacao busca_chave_em_pagina(registro* chave, pagina* pagina_alvo, int* posicao_encontrada)
 {
@@ -434,7 +424,6 @@ status_operacao busca_chave_em_pagina(registro* chave, pagina* pagina_alvo, int*
     }
     return FALHA;
 }
-
 
 status_operacao busca_chave(int rrn, registro* chave, int* rrn_encontrado, int* posicao_encontrada, FILE* arvore_b)
 {
@@ -474,7 +463,6 @@ status_operacao busca_chave(int rrn, registro* chave, int* rrn_encontrado, int* 
 
     return busca_chave(pagina_atual.filhos[posicao], chave, rrn_encontrado, posicao_encontrada, arvore_b);
 }
-
 
 status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
 {
@@ -519,7 +507,6 @@ status_operacao imprime_pagina(int rrn_alvo, FILE* arvore_b)
     return SUCESSO;
 }
 
-
 void modulo_insercao_arvb_apenas(FILE* arvore_b, registro* novo_registro)
 {
     /*
@@ -563,8 +550,6 @@ void modulo_insercao_arvb_apenas(FILE* arvore_b, registro* novo_registro)
     fwrite(&raiz, sizeof(int), 1, arvore_b);
 }
 
-
-//
 void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
 {
     /*
@@ -616,7 +601,6 @@ void modulo_criar_indice(FILE* arvore_b, FILE* arquivo_de_dados)
     printf("\nIndice criado com sucesso");
 }
 
-
 void modulo_imprimir_arvore_b(FILE* arvore_b)
 {
     /*
@@ -650,8 +634,6 @@ void modulo_imprimir_arvore_b(FILE* arvore_b)
     printf("\nImpressao realizada com sucesso!");
 }
 
-
-//
 void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_dados, FILE* arquivo_de_operacoes)
 {
     /*
@@ -695,7 +677,6 @@ void modulo_realizar_operacoes(FILE* arvore_b, FILE* arquivo_de_dados, FILE* arq
    }
 
 }
-
 
 void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_string)
 {
@@ -760,7 +741,6 @@ void modulo_insercao(FILE* arvore_b, FILE* arquivo_de_dados, char* registro_em_s
 
 }
 
-
 int rrn_raiz(FILE* arvore_b)
 {
     /*
@@ -776,8 +756,6 @@ int rrn_raiz(FILE* arvore_b)
     return rrn;
 }
 
-
-//
 void modulo_busca(FILE* arvore_b, char* identificador_registro, FILE* arquivo_de_dados)
 {
     /*
@@ -823,8 +801,6 @@ void modulo_busca(FILE* arvore_b, char* identificador_registro, FILE* arquivo_de
     printf("\n> %s (%d bytes - offset %d)", dados_do_jogo, tamanho_do_registro, offset_no_arquivo);
 }
 
-
-//
 void ler_identificador_registro(char *registro, char *nome)
 {
     /*
@@ -845,8 +821,6 @@ void ler_identificador_registro(char *registro, char *nome)
     nome[i] = '\0';
 }
 
-
-//
 int main(int argc, char *argv[]) 
 {
     FILE *arquivo_de_dados = fopen(NOME_ARQUIVO_DADOS, "rb+");
